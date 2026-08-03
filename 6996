@@ -35,7 +35,7 @@ ToggleBtn.Parent = ScreenGui
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
 ToggleBtn.Position = UDim2.new(0.04, 0, 0.35, 0)
 ToggleBtn.Size = UDim2.new(0, 48, 0, 48)
-ToggleBtn.Text = "⚡"
+ToggleBtn.Text = "W"
 ToggleBtn.TextColor3 = Color3.fromRGB(0, 220, 255)
 ToggleBtn.TextSize = 22
 ToggleBtn.Font = Enum.Font.GothamBold
@@ -236,7 +236,6 @@ createToggle(mainTab, "Speed 1.5x", function(state)
 	end
 end)
 
--- РЕВОЛЮЦИОННАЯ СИСТЕМА ПЕРЕМОТКИ ВРЕМЕНИ (REWIND)
 local positionHistory = {}
 local maxHistoryTime = 2
 local isRewinding = false
@@ -462,6 +461,71 @@ createToggle(mm2Tab, "Roles Chams", function(state)
 		for _, p in ipairs(Players:GetPlayers()) do
 			removeEsp(p)
 		end
+	end
+end)
+
+local function getMm2Target(roleType)
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p ~= LocalPlayer and p.Character then
+			local char = p.Character
+			local found = false
+			
+			for _, item in ipairs(char:GetChildren()) do
+				if item:IsA("Tool") then
+					if roleType == "Murderer" and item.Name == "Knife" then found = true end
+					if roleType == "Sheriff" and (item.Name == "Gun" or item.Name == "Revolver") then found = true end
+				end
+			end
+			
+			local bp = p:FindFirstChildOfClass("Backpack")
+			if bp then
+				for _, item in ipairs(bp:GetChildren()) do
+					if item:IsA("Tool") then
+						if roleType == "Murderer" and item.Name == "Knife" then found = true end
+						if roleType == "Sheriff" and (item.Name == "Gun" or item.Name == "Revolver") then found = true end
+					end
+				end
+			end
+			
+			if found then
+				return char
+			end
+		end
+	end
+	return nil
+end
+
+local function performTargetFling(targetChar)
+	if not targetChar or not targetChar:FindFirstChild("HumanoidRootPart") then return end
+	local myChar = LocalPlayer.Character
+	if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then return end
+	
+	local myHrp = myChar.HumanoidRootPart
+	local targetHrp = targetChar.HumanoidRootPart
+	
+	task.spawn(function()
+		local startTime = tick()
+		while tick() - startTime < 1.5 and myHrp and targetHrp and myHrp.Parent and targetHrp.Parent do
+			RunService.Heartbeat:Wait()
+			-- Моментально телепортируемся прямо на цель и включаем мощный флинг
+			myHrp.CFrame = targetHrp.CFrame
+			myHrp.Velocity = Vector3.new(30000, 30000, 30000)
+			myHrp.RotVelocity = Vector3.new(50000, 50000, 50000)
+		end
+	end)
+end
+
+createButton(mm2Tab, "Fling Murderer", function()
+	local target = getMm2Target("Murderer")
+	if target then
+		performTargetFling(target)
+	end
+end)
+
+createButton(mm2Tab, "Fling Sheriff", function()
+	local target = getMm2Target("Sheriff")
+	if target then
+		performTargetFling(target)
 	end
 end)
 
