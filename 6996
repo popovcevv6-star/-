@@ -165,7 +165,7 @@ local function createToggle(tab, titleText, callback)
 	title.Parent = toggle
 	title.BackgroundTransparency = 1
 	title.Position = UDim2.new(0, 12, 0, 0)
-	title.Size = UDim2.new(0.65, 0, 1, 0)
+	title.Size = UDim2.new(0, 140, 1, 0)
 	title.Text = titleText
 	title.TextColor3 = Color3.fromRGB(210, 210, 230)
 	title.TextSize = 13
@@ -208,6 +208,7 @@ end
 
 -- ==================== VISUAL TAB ====================
 local espEnabled = false
+local invisFullEnabled = false
 
 local function removeEsp(player)
 	if player.Character then
@@ -225,7 +226,27 @@ createToggle(visualTab, "ESP", function(state)
 	end
 end)
 
+createToggle(visualTab, "Invisible Full", function(state)
+	invisFullEnabled = state
+	
+	local char = LocalPlayer.Character
+	if not char then return end
+
+	if not state then
+		for _, v in ipairs(char:GetDescendants()) do
+			if v:IsA("BasePart") or v:IsA("Decal") then
+				if v.Name ~= "HumanoidRootPart" then
+					v.Transparency = 0
+				end
+			elseif v:IsA("ParticleEmitter") or v:IsA("Beam") or v:IsA("Trail") then
+				v.Enabled = true
+			end
+		end
+	end
+end)
+
 RunService.RenderStepped:Connect(function()
+	-- ESP Logic
 	if espEnabled then
 		for _, p in ipairs(Players:GetPlayers()) do
 			if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
@@ -260,6 +281,18 @@ RunService.RenderStepped:Connect(function()
 
 					gui.Parent = p.Character
 				end
+			end
+		end
+	end
+
+	-- Invisible Full Logic (Прячет все, включая нож/пест на поясе/спине в MM2)
+	if invisFullEnabled and LocalPlayer.Character then
+		local char = LocalPlayer.Character
+		for _, v in ipairs(char:GetDescendants()) do
+			if v:IsA("BasePart") or v:IsA("Decal") then
+				v.Transparency = 1
+			elseif v:IsA("ParticleEmitter") or v:IsA("Beam") or v:IsA("Trail") then
+				v.Enabled = false
 			end
 		end
 	end
