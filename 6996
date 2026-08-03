@@ -1,6 +1,5 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
 if not LocalPlayer then return end
@@ -29,7 +28,6 @@ local function stroke(obj, color, thickness)
 	return s
 end
 
--- Плавающая круглая кнопка
 local ToggleBtn = Instance.new("TextButton")
 ToggleBtn.Name = "FloatingCircle"
 ToggleBtn.Parent = ScreenGui
@@ -45,7 +43,6 @@ ToggleBtn.Draggable = true
 round(ToggleBtn, 24)
 stroke(ToggleBtn, Color3.fromRGB(0, 220, 255), 1.5)
 
--- Главное окно
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
@@ -55,6 +52,8 @@ MainFrame.Size = UDim2.new(0, 460, 0, 280)
 MainFrame.BackgroundColor3 = Color3.fromRGB(14, 14, 18)
 MainFrame.ClipsDescendants = true
 MainFrame.Visible = false
+MainFrame.Active = true
+MainFrame.Draggable = true
 round(MainFrame, 14)
 stroke(MainFrame, Color3.fromRGB(35, 35, 48), 1.5)
 
@@ -62,7 +61,6 @@ ToggleBtn.MouseButton1Click:Connect(function()
 	MainFrame.Visible = not MainFrame.Visible
 end)
 
--- Левая панель вкладок
 local Sidebar = Instance.new("Frame")
 Sidebar.Parent = MainFrame
 Sidebar.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
@@ -80,7 +78,6 @@ SidebarPad.PaddingTop = UDim.new(0, 15)
 SidebarPad.PaddingLeft = UDim.new(0, 12)
 SidebarPad.PaddingRight = UDim.new(0, 12)
 
--- Вертикальная разделительная линия
 local Line = Instance.new("Frame")
 Line.Parent = MainFrame
 Line.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
@@ -88,7 +85,6 @@ Line.Position = UDim2.new(0, 130, 0, 0)
 Line.Size = UDim2.new(0, 1, 1, 0)
 Line.BorderSizePixel = 0
 
--- Контейнер для контента
 local Content = Instance.new("Frame")
 Content.Parent = MainFrame
 Content.BackgroundTransparency = 1
@@ -212,13 +208,18 @@ end
 
 local espEnabled = false
 
-createToggle(mainTab, "ESP (Через стены)", function(state)
+local function removeEsp(player)
+	if player.Character then
+		local gui = player.Character:FindFirstChild("WorkingEspGui")
+		if gui then gui:Destroy() end
+	end
+end
+
+createToggle(visualTab, "ESP", function(state)
 	espEnabled = state
 	if not state then
 		for _, p in ipairs(Players:GetPlayers()) do
-			if p.Character and p.Character:FindFirstChild("ModernEspHL") then
-				p.Character.ModernEspHL:Destroy()
-			end
+			removeEsp(p)
 		end
 	end
 end)
@@ -226,20 +227,41 @@ end)
 RunService.RenderStepped:Connect(function()
 	if espEnabled then
 		for _, p in ipairs(Players:GetPlayers()) do
-			if p ~= LocalPlayer and p.Character then
-				local hl = p.Character:FindFirstChild("ModernEspHL")
-				if not hl then
-					hl = Instance.new("Highlight")
-					hl.Name = "ModernEspHL"
-					hl.Adornee = p.Character
-					hl.FillColor = Color3.fromRGB(0, 170, 255)
-					hl.OutlineColor = Color3.fromRGB(255, 255, 255)
-					hl.FillTransparency = 0.4
-					hl.OutlineTransparency = 0
-					hl.AlwaysOnTop = true
-					hl.Parent = p.Character
+			if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+				local hrp = p.Character.HumanoidRootPart
+				local gui = p.Character:FindFirstChild("WorkingEspGui")
+				
+				if not gui then
+					gui = Instance.new("BillboardGui")
+					gui.Name = "WorkingEspGui"
+					gui.Adornee = hrp
+					gui.AlwaysOnTop = true
+					gui.Size = UDim2.new(0, 50, 0, 70)
+					gui.StudsOffset = Vector3.new(0, 0, 0)
+
+					local frame = Instance.new("Frame")
+					frame.Parent = gui
+					frame.Size = UDim2.new(1, 0, 1, 0)
+					frame.BackgroundTransparency = 0.6
+					frame.BackgroundColor3 = Color3.fromRGB(255, 0, 80)
+					round(frame, 4)
+					stroke(frame, Color3.fromRGB(255, 255, 255), 1.5)
+
+					local label = Instance.new("TextLabel")
+					label.Parent = frame
+					label.Size = UDim2.new(1, 0, 0, 16)
+					label.Position = UDim2.new(0, 0, -0.25, 0)
+					label.BackgroundTransparency = 1
+					label.Text = p.DisplayName
+					label.TextColor3 = Color3.fromRGB(255, 255, 255)
+					label.TextSize = 11
+					label.Font = Enum.Font.GothamBold
+
+					gui.Parent = p.Character
 				end
 			end
 		end
 	end
 end)
+
+Players.PlayerRemoving:Connect(removeEsp)
