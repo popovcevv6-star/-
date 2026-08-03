@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 
 if not LocalPlayer then return end
@@ -207,9 +208,78 @@ local function createToggle(tab, titleText, callback)
 	end)
 end
 
+local function createButton(tab, titleText, callback)
+	local btn = Instance.new("TextButton")
+	btn.Parent = tab
+	btn.BackgroundColor3 = Color3.fromRGB(0, 140, 230)
+	btn.Size = UDim2.new(1, 0, 0, 42)
+	btn.Text = titleText
+	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	btn.TextSize = 13
+	btn.Font = Enum.Font.GothamBold
+	round(btn, 8)
+	stroke(btn, Color3.fromRGB(0, 180, 255), 1)
+
+	btn.MouseButton1Click:Connect(function()
+		pcall(callback)
+	end)
+end
+
+-- === MAIN TAB ===
+local speedBoostEnabled = false
+createToggle(mainTab, "Speed 1.5x", function(state)
+	speedBoostEnabled = state
+	local char = LocalPlayer.Character
+	local hum = char and char:FindFirstChildOfClass("Humanoid")
+	if hum then
+		hum.WalkSpeed = state and 24 or 16
+	end
+end)
+
+-- РЕВОЛЮЦИОННАЯ СИСТЕМА ПЕРЕМОТКИ ВРЕМЕНИ (REWIND)
+local positionHistory = {}
+local maxHistoryTime = 2
+local isRewinding = false
+
+RunService.Heartbeat:Connect(function()
+	if not isRewinding and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+		local hrp = LocalPlayer.Character.HumanoidRootPart
+		table.insert(positionHistory, {cf = hrp.CFrame, time = tick()})
+		
+		local now = tick()
+		for i = #positionHistory, 1, -1 do
+			if now - positionHistory[i].time > maxHistoryTime then
+				table.remove(positionHistory, i)
+			end
+		end
+	end
+end)
+
+createButton(mainTab, "Rewind (2s)", function()
+	if isRewinding or #positionHistory < 2 then return end
+	local char = LocalPlayer.Character
+	local hrp = char and char:FindFirstChild("HumanoidRootPart")
+	if not hrp then return end
+
+	isRewinding = true
+	local historyCopy = {}
+	for _, data in ipairs(positionHistory) do
+		table.insert(historyCopy, data.cf)
+	end
+	
+	task.spawn(function()
+		for i = #historyCopy, 1, -1 do
+			hrp.CFrame = historyCopy[i]
+			RunService.RenderStepped:Wait()
+		end
+		positionHistory = {}
+		isRewinding = false
+	end)
+end)
+
+-- === VISUAL TAB ===
 local espEnabled = false
 local invisFullEnabled = false
-local mm2RolesEspEnabled = false
 
 local function removeEsp(player)
 	if player.Character then
@@ -250,6 +320,13 @@ createToggle(visualTab, "Invisible Full", function(state)
 	end
 end)
 
+-- === TROLLING TAB ===
+local spinbotEnabled = false
+local flingEnabled = false
+local invisEnabled = false
+local invisFakeRoot = nil
+local spinSpeed = 150
+
 local wandTool = nil
 local wandTarget = nil
 local wandConnection = nil
@@ -265,6 +342,67 @@ local function removeWand()
 		wandTool = nil
 	end
 end
+
+createToggle(trollingTab, "Spinbot", function(state)
+	spinbotEnabled = state
+end)
+
+createToggle(trollingTab, "Fling", function(state)
+	flingEnabled = state
+	if state then
+		task.spawn(function()
+			while flingEnabled do
+				RunService.Heartbeat:Wait()
+				pcall(function()
+					local c = LocalPlayer.Character
+					local hrp = c and c:FindFirstChild("HumanoidRootPart")
+					if hrp then
+						local vel = hrp.Velocity
+						hrp.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
+						RunService.RenderStepped:Wait()
+						hrp.Velocity = vel
+					end
+				end)
+			end
+		end)
+	end
+end)
+
+createToggle(trollingTab, "invisible", function(state)
+	invisEnabled = state
+	local char = LocalPlayer.Character
+	local hrp = char and char:FindFirstChild("HumanoidRootPart")
+	local hum = char and char:FindFirstChildOfClass("Humanoid")
+	
+	if not char or not hrp or not hum then return end
+
+	if state then
+		pcall(function()
+			local clone = hrp:Clone()
+			clone.Parent = char
+			hrp.Transparency = 1
+			
+			invisFakeRoot = hrp
+			char.PrimaryPart = clone
+
+			task.spawn(function()
+				while invisEnabled and char and char.Parent do
+					RunService.RenderStepped:Wait()
+					if invisFakeRoot then
+						invisFakeRoot.CFrame = CFrame.new(0, -99999, 0)
+					end
+				end
+			end)
+		end)
+	else
+		pcall(function()
+			if invisFakeRoot and char then
+				invisFakeRoot.CFrame = char.PrimaryPart.CFrame
+				char.PrimaryPart = invisFakeRoot
+			end
+		end)
+	end
+end)
 
 createToggle(trollingTab, "Attach Wand", function(state)
 	if state then
@@ -316,6 +454,8 @@ createToggle(trollingTab, "Attach Wand", function(state)
 	end
 end)
 
+-- === MM2 TAB ===
+local mm2RolesEspEnabled = false
 createToggle(mm2Tab, "Roles Chams", function(state)
 	mm2RolesEspEnabled = state
 	if not state then
@@ -325,7 +465,13 @@ createToggle(mm2Tab, "Roles Chams", function(state)
 	end
 end)
 
+-- === MAIN LOOP ===
 RunService.RenderStepped:Connect(function()
+	if speedBoostEnabled and LocalPlayer.Character then
+		local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+		if hum then hum.WalkSpeed = 24 end
+	end
+
 	if espEnabled then
 		for _, p in ipairs(Players:GetPlayers()) do
 			if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
@@ -458,6 +604,11 @@ RunService.RenderStepped:Connect(function()
 				v.Enabled = false
 			end
 		end
+	end
+
+	if spinbotEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+		local hrp = LocalPlayer.Character.HumanoidRootPart
+		hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(spinSpeed), 0)
 	end
 end)
 
