@@ -307,7 +307,7 @@ RunService.RenderStepped:Connect(function()
 		end
 	end
 
-	-- Invisible Full Logic (Убирает тело + аксессуары + предметы на костях MM2)
+	-- Invisible Full Logic (Прячет тело и всё навесное оружие MM2)
 	if invisFullEnabled and LocalPlayer.Character then
 		local char = LocalPlayer.Character
 		for _, v in ipairs(char:GetDescendants()) do
