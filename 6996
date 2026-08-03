@@ -514,7 +514,7 @@ local function performRoleFling(roleType)
 	task.spawn(function()
 		local startTime = tick()
 		-- Флингуем ровно 3.5 секунды
-		while tick() - startTime < 1.3 and myHrp and targetChar and targetChar.Parent and myHrp.Parent do
+		while tick() - startTime < 2.3 and myHrp and targetChar and targetChar.Parent and myHrp.Parent do
 			RunService.Heartbeat:Wait()
 			local targetHrp = targetChar:FindFirstChild("HumanoidRootPart")
 			if targetHrp then
