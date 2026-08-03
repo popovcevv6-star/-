@@ -35,7 +35,7 @@ ToggleBtn.Parent = ScreenGui
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
 ToggleBtn.Position = UDim2.new(0.04, 0, 0.35, 0)
 ToggleBtn.Size = UDim2.new(0, 48, 0, 48)
-ToggleBtn.Text = "W"
+ToggleBtn.Text = "⚡"
 ToggleBtn.TextColor3 = Color3.fromRGB(0, 220, 255)
 ToggleBtn.TextSize = 22
 ToggleBtn.Font = Enum.Font.GothamBold
@@ -237,7 +237,7 @@ createToggle(mainTab, "Speed 1.5x", function(state)
 end)
 
 local positionHistory = {}
-local maxHistoryTime = 2
+local maxHistoryTime = 4
 local isRewinding = false
 
 RunService.Heartbeat:Connect(function()
@@ -254,7 +254,7 @@ RunService.Heartbeat:Connect(function()
 	end
 end)
 
-createButton(mainTab, "Rewind (2s)", function()
+createButton(mainTab, "Rewind (4s)", function()
 	if isRewinding or #positionHistory < 2 then return end
 	local char = LocalPlayer.Character
 	local hrp = char and char:FindFirstChild("HumanoidRootPart")
@@ -495,38 +495,54 @@ local function getMm2Target(roleType)
 	return nil
 end
 
-local function performTargetFling(targetChar)
+local isFlingingRole = false
+
+local function performRoleFling(roleType)
+	if isFlingingRole then return end
+	local targetChar = getMm2Target(roleType)
 	if not targetChar or not targetChar:FindFirstChild("HumanoidRootPart") then return end
+	
 	local myChar = LocalPlayer.Character
 	if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then return end
 	
 	local myHrp = myChar.HumanoidRootPart
-	local targetHrp = targetChar.HumanoidRootPart
+	
+	-- Сохраняем позицию, где ты был прямо перед нажатием
+	local startPosition = myHrp.CFrame
+	isFlingingRole = true
 	
 	task.spawn(function()
 		local startTime = tick()
-		while tick() - startTime < 1.5 and myHrp and targetHrp and myHrp.Parent and targetHrp.Parent do
+		-- Флингуем ровно 3.5 секунды
+		while tick() - startTime < 1.3 and myHrp and targetChar and targetChar.Parent and myHrp.Parent do
 			RunService.Heartbeat:Wait()
-			-- Моментально телепортируемся прямо на цель и включаем мощный флинг
-			myHrp.CFrame = targetHrp.CFrame
-			myHrp.Velocity = Vector3.new(30000, 30000, 30000)
-			myHrp.RotVelocity = Vector3.new(50000, 50000, 50000)
+			local targetHrp = targetChar:FindFirstChild("HumanoidRootPart")
+			if targetHrp then
+				myHrp.CFrame = targetHrp.CFrame
+				myHrp.Velocity = Vector3.new(30000, 30000, 30000)
+				myHrp.RotVelocity = Vector3.new(50000, 50000, 50000)
+			else
+				break
+			end
 		end
+		
+		-- Возвращаем тебя обратно на то место, где ты стоял
+		if myHrp and myHrp.Parent then
+			myHrp.CFrame = startPosition
+			myHrp.Velocity = Vector3.new(0, 0, 0)
+			myHrp.RotVelocity = Vector3.new(0, 0, 0)
+		end
+		
+		isFlingingRole = false
 	end)
 end
 
 createButton(mm2Tab, "Fling Murderer", function()
-	local target = getMm2Target("Murderer")
-	if target then
-		performTargetFling(target)
-	end
+	performRoleFling("Murderer")
 end)
 
 createButton(mm2Tab, "Fling Sheriff", function()
-	local target = getMm2Target("Sheriff")
-	if target then
-		performTargetFling(target)
-	end
+	performRoleFling("Sheriff")
 end)
 
 -- === MAIN LOOP ===
