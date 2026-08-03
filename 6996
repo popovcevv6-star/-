@@ -1,17 +1,16 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
 if not LocalPlayer then return end
 
 pcall(function()
-	local existing = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("CleanNewMenu")
+	local existing = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("AestheticMenuV2")
 	if existing then existing:Destroy() end
 end)
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "CleanNewMenu"
+ScreenGui.Name = "AestheticMenuV2"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
@@ -24,17 +23,20 @@ end
 local CircleBtn = Instance.new("TextButton")
 CircleBtn.Name = "ToggleCircle"
 CircleBtn.Parent = ScreenGui
-CircleBtn.BackgroundColor3 = Color3.fromRGB(65, 65, 65)
+CircleBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
 CircleBtn.Position = UDim2.new(0.05, 0, 0.4, 0)
-CircleBtn.Size = UDim2.new(0, 45, 0, 45)
-CircleBtn.Text = ""
+CircleBtn.Size = UDim2.new(0, 50, 0, 50)
+CircleBtn.Text = "⚡"
+CircleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CircleBtn.TextSize = 20
+CircleBtn.Font = Enum.Font.SourceSansBold
 CircleBtn.Active = true
 CircleBtn.Draggable = true
 addCorner(CircleBtn, 25)
 
 local CircleStroke = Instance.new("UIStroke")
 CircleStroke.Parent = CircleBtn
-CircleStroke.Color = Color3.fromRGB(40, 40, 40)
+CircleStroke.Color = Color3.fromRGB(80, 80, 100)
 CircleStroke.Thickness = 2
 
 local MainFrame = Instance.new("Frame")
@@ -42,16 +44,16 @@ MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-MainFrame.Size = UDim2.new(0, 340, 0, 200)
-MainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+MainFrame.Size = UDim2.new(0, 420, 0, 240)
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 MainFrame.ClipsDescendants = true
 MainFrame.Visible = false
-addCorner(MainFrame, 16)
+addCorner(MainFrame, 12)
 
 local MainStroke = Instance.new("UIStroke")
 MainStroke.Parent = MainFrame
-MainStroke.Color = Color3.fromRGB(35, 35, 35)
-MainStroke.Thickness = 3
+MainStroke.Color = Color3.fromRGB(60, 60, 75)
+MainStroke.Thickness = 2
 
 CircleBtn.MouseButton1Click:Connect(function()
 	MainFrame.Visible = not MainFrame.Visible
@@ -59,32 +61,33 @@ end)
 
 local SidePanel = Instance.new("Frame")
 SidePanel.Parent = MainFrame
-SidePanel.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-SidePanel.Size = UDim2.new(0, 110, 1, 0)
+SidePanel.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
+SidePanel.Size = UDim2.new(0, 130, 1, 0)
 SidePanel.BorderSizePixel = 0
 
 local SideLayout = Instance.new("UIListLayout")
 SideLayout.Parent = SidePanel
 SideLayout.SortOrder = Enum.SortOrder.LayoutOrder
-SideLayout.Padding = UDim.new(0, 5)
+SideLayout.Padding = UDim.new(0, 6)
 
 local SidePadding = Instance.new("UIPadding")
 SidePadding.Parent = SidePanel
-SidePadding.PaddingTop = UDim.new(0, 12)
-SidePadding.PaddingLeft = UDim.new(0, 10)
+SidePadding.PaddingTop = UDim.new(0, 15)
+SidePadding.PaddingLeft = UDim.new(0, 12)
+SidePadding.PaddingRight = UDim.new(0, 12)
 
 local Divider = Instance.new("Frame")
 Divider.Parent = MainFrame
-Divider.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-Divider.Position = UDim2.new(0, 110, 0, 0)
-Divider.Size = UDim2.new(0, 2, 1, 0)
+Divider.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+Divider.Position = UDim2.new(0, 130, 0, 0)
+Divider.Size = UDim2.new(0, 1, 1, 0)
 Divider.BorderSizePixel = 0
 
 local ContentArea = Instance.new("Frame")
 ContentArea.Parent = MainFrame
 ContentArea.BackgroundTransparency = 1
-ContentArea.Position = UDim2.new(0, 112, 0, 0)
-ContentArea.Size = UDim2.new(1, -112, 1, 0)
+ContentArea.Position = UDim2.new(0, 131, 0, 0)
+ContentArea.Size = UDim2.new(1, -131, 1, 0)
 
 local tabs = {}
 local tabButtons = {}
@@ -92,13 +95,13 @@ local tabButtons = {}
 local function createTab(tabName)
 	local btn = Instance.new("TextButton")
 	btn.Parent = SidePanel
-	btn.BackgroundTransparency = 1
-	btn.Size = UDim2.new(1, -10, 0, 28)
-	btn.Text = tabName
-	btn.TextColor3 = Color3.fromRGB(170, 170, 170)
-	btn.TextSize = 16
-	btn.TextXAlignment = Enum.TextXAlignment.Left
+	btn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+	btn.Size = UDim2.new(1, 0, 0, 34)
+	btn.Text = tabName:upper()
+	btn.TextColor3 = Color3.fromRGB(160, 160, 180)
+	btn.TextSize = 13
 	btn.Font = Enum.Font.SourceSansBold
+	addCorner(btn, 8)
 
 	local container = Instance.new("ScrollingFrame")
 	container.Parent = ContentArea
@@ -106,8 +109,8 @@ local function createTab(tabName)
 	container.Size = UDim2.new(1, 0, 1, 0)
 	container.CanvasSize = UDim2.new(0, 0, 0, 0)
 	container.AutomaticCanvasSize = Enum.AutomaticSize.Y
-	container.ScrollBarThickness = 4
-	container.ScrollBarImageColor3 = Color3.fromRGB(35, 35, 35)
+	container.ScrollBarThickness = 3
+	container.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 100)
 	container.Visible = false
 
 	local listLayout = Instance.new("UIListLayout")
@@ -117,17 +120,22 @@ local function createTab(tabName)
 
 	local pad = Instance.new("UIPadding")
 	pad.Parent = container
-	pad.PaddingTop = UDim.new(0, 12)
-	pad.PaddingLeft = UDim.new(0, 12)
-	pad.PaddingRight = UDim.new(0, 12)
+	pad.PaddingTop = UDim.new(0, 15)
+	pad.PaddingLeft = UDim.new(0, 15)
+	pad.PaddingRight = UDim.new(0, 15)
+	pad.PaddingBottom = UDim.new(0, 15)
 
 	tabs[tabName] = container
 	tabButtons[tabName] = btn
 
 	btn.MouseButton1Click:Connect(function()
 		for _, c in pairs(tabs) do c.Visible = false end
-		for _, b in pairs(tabButtons) do b.TextColor3 = Color3.fromRGB(170, 170, 170) end
+		for _, b in pairs(tabButtons) do 
+			b.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+			b.TextColor3 = Color3.fromRGB(160, 160, 180)
+		end
 		container.Visible = true
+		btn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
 		btn.TextColor3 = Color3.fromRGB(255, 255, 255)
 	end)
 
@@ -139,28 +147,57 @@ local visualTab = createTab("visual")
 local trollingTab = createTab("trolling")
 
 tabs["main"].Visible = true
+tabButtons["main"].BackgroundColor3 = Color3.fromRGB(60, 60, 80)
 tabButtons["main"].TextColor3 = Color3.fromRGB(255, 255, 255)
 
 local function createToggle(tabContainer, text, callback)
 	local toggleBtn = Instance.new("TextButton")
 	toggleBtn.Parent = tabContainer
-	toggleBtn.BackgroundTransparency = 1
-	toggleBtn.Size = UDim2.new(1, -10, 0, 24)
-	toggleBtn.Text = text .. " : OFF"
-	toggleBtn.TextColor3 = Color3.fromRGB(220, 220, 220)
-	toggleBtn.TextSize = 15
-	toggleBtn.TextXAlignment = Enum.TextXAlignment.Left
-	toggleBtn.Font = Enum.Font.SourceSansPro
+	toggleBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+	toggleBtn.Size = UDim2.new(1, 0, 0, 40)
+	toggleBtn.Text = ""
+	addCorner(toggleBtn, 8)
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Parent = toggleBtn
+	stroke.Color = Color3.fromRGB(50, 50, 65)
+	stroke.Thickness = 1
+
+	local titleLabel = Instance.new("TextLabel")
+	titleLabel.Parent = toggleBtn
+	titleLabel.BackgroundTransparency = 1
+	titleLabel.Position = UDim2.new(0, 12, 0, 0)
+	titleLabel.Size = UDim2.new(0.6, 0, 1, 0)
+	titleLabel.Text = text
+	titleLabel.TextColor3 = Color3.fromRGB(220, 220, 240)
+	titleLabel.TextSize = 14
+	titleLabel.Font = Enum.Font.SourceSansBold
+	titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+	local statusLabel = Instance.new("TextLabel")
+	statusLabel.Parent = toggleBtn
+	statusLabel.BackgroundTransparency = 1
+	statusLabel.Position = UDim2.new(0.6, 0, 0, 0)
+	statusLabel.Size = UDim2.new(0.4, -12, 1, 0)
+	statusLabel.Text = "OFF"
+	statusLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
+	statusLabel.TextSize = 14
+	statusLabel.Font = Enum.Font.SourceSansBold
+	statusLabel.TextXAlignment = Enum.TextXAlignment.Right
 
 	local state = false
 	toggleBtn.MouseButton1Click:Connect(function()
 		state = not state
 		if state then
-			toggleBtn.Text = text .. " : ON"
-			toggleBtn.TextColor3 = Color3.fromRGB(100, 255, 100)
+			statusLabel.Text = "ON"
+			statusLabel.TextColor3 = Color3.fromRGB(90, 255, 90)
+			toggleBtn.BackgroundColor3 = Color3.fromRGB(40, 50, 45)
+			stroke.Color = Color3.fromRGB(60, 120, 80)
 		else
-			toggleBtn.Text = text .. " : OFF"
-			toggleBtn.TextColor3 = Color3.fromRGB(220, 220, 220)
+			statusLabel.Text = "OFF"
+			statusLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
+			toggleBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+			stroke.Color = Color3.fromRGB(50, 50, 65)
 		end
 		pcall(function() callback(state) end)
 	end)
@@ -168,12 +205,12 @@ end
 
 local espEnabled = false
 
-createToggle(mainTab, "ESP (через стены)", function(state)
+createToggle(mainTab, "ESP (Через стены)", function(state)
 	espEnabled = state
 	if not state then
 		for _, p in ipairs(Players:GetPlayers()) do
-			if p.Character and p.Character:FindFirstChild("MainEspHighlight") then
-				p.Character.MainEspHighlight:Destroy()
+			if p.Character and p.Character:FindFirstChild("CleanEspHighlight") then
+				p.Character.CleanEspHighlight:Destroy()
 			end
 		end
 	end
@@ -183,14 +220,14 @@ RunService.RenderStepped:Connect(function()
 	if espEnabled then
 		for _, p in ipairs(Players:GetPlayers()) do
 			if p ~= LocalPlayer and p.Character then
-				local hl = p.Character:FindFirstChild("MainEspHighlight")
+				local hl = p.Character:FindFirstChild("CleanEspHighlight")
 				if not hl then
 					hl = Instance.new("Highlight")
-					hl.Name = "MainEspHighlight"
+					hl.Name = "CleanEspHighlight"
 					hl.Adornee = p.Character
-					hl.FillColor = Color3.fromRGB(255, 50, 50)
+					hl.FillColor = Color3.fromRGB(255, 60, 60)
 					hl.OutlineColor = Color3.fromRGB(255, 255, 255)
-					hl.FillTransparency = 0.5
+					hl.FillTransparency = 0.4
 					hl.OutlineTransparency = 0
 					hl.AlwaysOnTop = true
 					hl.Parent = p.Character
