@@ -499,7 +499,6 @@ local isFlingingRole = false
 
 local function performRoleFling(roleType)
 	if isFlingingRole then return end
-	
 	local targetChar = getMm2Target(roleType)
 	if not targetChar or not targetChar:FindFirstChild("HumanoidRootPart") then return end
 	
@@ -511,43 +510,27 @@ local function performRoleFling(roleType)
 	isFlingingRole = true
 	
 	task.spawn(function()
-		pcall(function()
-			local startTime = tick()
-			
-			-- Фаза 1: Мгновенная сцепка (0.4с)
-			while tick() - startTime < 0.4 and myHrp and targetChar and targetChar.Parent and myHrp.Parent do
-				RunService.Heartbeat:Wait()
-				local targetHrp = targetChar:FindFirstChild("HumanoidRootPart")
-				if targetHrp then
-					myHrp.CFrame = targetHrp.CFrame
-					myHrp.Velocity = Vector3.new(0, 0, 0)
-					myHrp.RotVelocity = Vector3.new(0, 0, 0)
-				else
-					break
-				end
+		local startTime = tick()
+		-- Флингуем ровно 0.4 секунды
+		while tick() - startTime < 0.4 and myHrp and targetChar and targetChar.Parent and myHrp.Parent do
+			RunService.Heartbeat:Wait()
+			local targetHrp = targetChar:FindFirstChild("HumanoidRootPart")
+			if targetHrp then
+				myHrp.CFrame = targetHrp.CFrame
+				myHrp.Velocity = Vector3.new(30000, 30000, 30000)
+				myHrp.RotVelocity = Vector3.new(50000, 50000, 50000)
+			else
+				break
 			end
-			
-			-- Фаза 2: Совместный флинг (остаток до 3.5с)
-			local flingStartTime = tick()
-			while tick() - flingStartTime < (3.5 - 0.4) and myHrp and targetChar and targetChar.Parent and myHrp.Parent do
-				RunService.Heartbeat:Wait()
-				local targetHrp = targetChar:FindFirstChild("HumanoidRootPart")
-				if targetHrp then
-					myHrp.CFrame = targetHrp.CFrame
-					myHrp.Velocity = Vector3.new(50000, 50000, 50000)
-					myHrp.RotVelocity = Vector3.new(50000, 50000, 50000)
-				else
-					break
-				end
-			end
-			
-			-- Фаза 3: Возврат на исходное место
-			if myHrp and myHrp.Parent then
-				myHrp.CFrame = startPosition
-				myHrp.Velocity = Vector3.new(0, 0, 0)
-				myHrp.RotVelocity = Vector3.new(0, 0, 0)
-			end
-		end)
+		end
+		
+		-- Возвращаем обратно на исходное место
+		if myHrp and myHrp.Parent then
+			myHrp.CFrame = startPosition
+			myHrp.Velocity = Vector3.new(0, 0, 0)
+			myHrp.RotVelocity = Vector3.new(0, 0, 0)
+		end
+		
 		isFlingingRole = false
 	end)
 end
@@ -562,65 +545,77 @@ end)
 
 -- === MAIN LOOP ===
 RunService.RenderStepped:Connect(function()
-	pcall(function()
-		if speedBoostEnabled and LocalPlayer.Character then
-			local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-			if hum then hum.WalkSpeed = 24 end
-		end
+	if speedBoostEnabled and LocalPlayer.Character then
+		local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+		if hum then hum.WalkSpeed = 24 end
+	end
 
-		if espEnabled then
-			for _, p in ipairs(Players:GetPlayers()) do
-				if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-					local hrp = p.Character.HumanoidRootPart
-					local gui = p.Character:FindFirstChild("WorkingEspGui")
-					
-					if not gui then
-						gui = Instance.new("BillboardGui")
-						gui.Name = "WorkingEspGui"
-						gui.Adornee = hrp
-						gui.AlwaysOnTop = true
-						gui.Size = UDim2.new(0, 24, 0, 36)
-						gui.StudsOffset = Vector3.new(0, 0, 0)
+	if espEnabled then
+		for _, p in ipairs(Players:GetPlayers()) do
+			if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+				local hrp = p.Character.HumanoidRootPart
+				local gui = p.Character:FindFirstChild("WorkingEspGui")
+				
+				if not gui then
+					gui = Instance.new("BillboardGui")
+					gui.Name = "WorkingEspGui"
+					gui.Adornee = hrp
+					gui.AlwaysOnTop = true
+					gui.Size = UDim2.new(0, 24, 0, 36)
+					gui.StudsOffset = Vector3.new(0, 0, 0)
 
-						local frame = Instance.new("Frame")
-						frame.Parent = gui
-						frame.Size = UDim2.new(1, 0, 1, 0)
-						frame.BackgroundTransparency = 0.6
-						frame.BackgroundColor3 = Color3.fromRGB(255, 0, 80)
-						round(frame, 3)
-						stroke(frame, Color3.fromRGB(255, 255, 255), 1)
+					local frame = Instance.new("Frame")
+					frame.Parent = gui
+					frame.Size = UDim2.new(1, 0, 1, 0)
+					frame.BackgroundTransparency = 0.6
+					frame.BackgroundColor3 = Color3.fromRGB(255, 0, 80)
+					round(frame, 3)
+					stroke(frame, Color3.fromRGB(255, 255, 255), 1)
 
-						local label = Instance.new("TextLabel")
-						label.Parent = frame
-						label.Size = UDim2.new(1, 0, 0, 12)
-						label.Position = UDim2.new(0, 0, -0.35, 0)
-						label.BackgroundTransparency = 1
-						label.Text = p.DisplayName
-						label.TextColor3 = Color3.fromRGB(255, 255, 255)
-						label.TextSize = 9
-						label.Font = Enum.Font.GothamBold
+					local label = Instance.new("TextLabel")
+					label.Parent = frame
+					label.Size = UDim2.new(1, 0, 0, 12)
+					label.Position = UDim2.new(0, 0, -0.35, 0)
+					label.BackgroundTransparency = 1
+					label.Text = p.DisplayName
+					label.TextColor3 = Color3.fromRGB(255, 255, 255)
+					label.TextSize = 9
+					label.Font = Enum.Font.GothamBold
 
-						gui.Parent = p.Character
-					end
+					gui.Parent = p.Character
 				end
 			end
 		end
+	end
 
-		if mm2RolesEspEnabled then
-			for _, p in ipairs(Players:GetPlayers()) do
-				if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-					local hrp = p.Character.HumanoidRootPart
-					local char = p.Character
-					local gui = char:FindFirstChild("MM2RolesEspGui")
+	if mm2RolesEspEnabled then
+		for _, p in ipairs(Players:GetPlayers()) do
+			if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+				local hrp = p.Character.HumanoidRootPart
+				local char = p.Character
+				local gui = char:FindFirstChild("MM2RolesEspGui")
+				
+				local roleColor = Color3.fromRGB(150, 150, 150)
+				local roleName = "Innocent"
+				
+				pcall(function()
+					local backpack = p:FindFirstChildOfClass("Backpack")
+					local character = char
 					
-					local roleColor = Color3.fromRGB(150, 150, 150)
-					local roleName = "Innocent"
+					for _, item in ipairs(character:GetChildren()) do
+						if item:IsA("Tool") then
+							if item.Name == "Knife" then
+								roleColor = Color3.fromRGB(255, 0, 0)
+								roleName = "Murderer"
+							elseif item.Name == "Gun" or item.Name == "Revolver" then
+								roleColor = Color3.fromRGB(0, 120, 255)
+								roleName = "Sheriff"
+							end
+						end
+					end
 					
-					pcall(function()
-						local backpack = p:FindFirstChildOfClass("Backpack")
-						local character = char
-						
-						for _, item in ipairs(character:GetChildren()) do
+					if backpack then
+						for _, item in ipairs(backpack:GetChildren()) do
 							if item:IsA("Tool") then
 								if item.Name == "Knife" then
 									roleColor = Color3.fromRGB(255, 0, 0)
@@ -631,75 +626,68 @@ RunService.RenderStepped:Connect(function()
 								end
 							end
 						end
-						
-						if backpack then
-							for _, item in ipairs(backpack:GetChildren()) do
-								if item:IsA("Tool") then
-									if item.Name == "Knife" then
-										roleColor = Color3.fromRGB(255, 0, 0)
-										roleName = "Murderer"
-									elseif item.Name == "Gun" or item.Name == "Revolver" then
-										roleColor = Color3.fromRGB(0, 120, 255)
-										roleName = "Sheriff"
-									end
-								end
-							end
-						end
-					end)
+					end
+				end)
 
-					if not gui then
-						gui = Instance.new("BillboardGui")
-						gui.Name = "MM2RolesEspGui"
-						gui.Adornee = hrp
-						gui.AlwaysOnTop = true
-						gui.Size = UDim2.new(0, 24, 0, 36)
-						gui.StudsOffset = Vector3.new(0, 0, 0)
+				if not gui then
+					gui = Instance.new("BillboardGui")
+					gui.Name = "MM2RolesEspGui"
+					gui.Adornee = hrp
+					gui.AlwaysOnTop = true
+					gui.Size = UDim2.new(0, 24, 0, 36)
+					gui.StudsOffset = Vector3.new(0, 0, 0)
 
-						local frame = Instance.new("Frame")
-						frame.Name = "Box"
-						frame.Parent = gui
-						frame.Size = UDim2.new(1, 0, 1, 0)
-						frame.BackgroundTransparency = 0.5
-						round(frame, 3)
-						stroke(frame, Color3.fromRGB(255, 255, 255), 1)
+					local frame = Instance.new("Frame")
+					frame.Name = "Box"
+					frame.Parent = gui
+					frame.Size = UDim2.new(1, 0, 1, 0)
+					frame.BackgroundTransparency = 0.5
+					round(frame, 3)
+					stroke(frame, Color3.fromRGB(255, 255, 255), 1)
 
-						local label = Instance.new("TextLabel")
-						label.Name = "Label"
-						label.Parent = frame
-						label.Size = UDim2.new(1, 0, 0, 12)
-						label.Position = UDim2.new(0, 0, -0.35, 0)
-						label.BackgroundTransparency = 1
-						label.TextSize = 9
-						label.Font = Enum.Font.GothamBold
-						label.TextColor3 = Color3.fromRGB(255, 255, 255)
+					local label = Instance.new("TextLabel")
+					label.Name = "Label"
+					label.Parent = frame
+					label.Size = UDim2.new(1, 0, 0, 12)
+					label.Position = UDim2.new(0, 0, -0.35, 0)
+					label.BackgroundTransparency = 1
+					label.TextSize = 9
+					label.Font = Enum.Font.GothamBold
+					label.TextColor3 = Color3.fromRGB(255, 255, 255)
 
-						gui.Parent = char
-					else
-						local frame = gui:FindFirstChild("Box")
-						local label = frame and frame:FindFirstChild("Label")
-						if frame then
-							frame.BackgroundColor3 = roleColor
-						end
-						if label then
-							label.Text = p.DisplayName .. " [" .. roleName .. "]"
-						end
+					gui.Parent = char
+				else
+					local frame = gui:FindFirstChild("Box")
+					local label = frame and frame:FindFirstChild("Label")
+					if frame then
+						frame.BackgroundColor3 = roleColor
+					end
+					if label then
+						label.Text = p.DisplayName .. " [" .. roleName .. "]"
 					end
 				end
 			end
 		end
+	end
 
-		if invisFullEnabled and LocalPlayer.Character then
-			local char = LocalPlayer.Character
-			for _, v in ipairs(char:GetDescendants()) do
-				if v:IsA("BasePart") then
-					v.Transparency = 1
-					v.LocalTransparencyModifier = 1
-				elseif v:IsA("Decal") then
-					v.Transparency = 1
-				elseif v:IsA("ParticleEmitter") or v:IsA("Beam") or v:IsA("Trail") then
-					v.Enabled = false
-				end
+	if invisFullEnabled and LocalPlayer.Character then
+		local char = LocalPlayer.Character
+		for _, v in ipairs(char:GetDescendants()) do
+			if v:IsA("BasePart") then
+				v.Transparency = 1
+				v.LocalTransparencyModifier = 1
+			elseif v:IsA("Decal") then
+				v.Transparency = 1
+			elseif v:IsA("ParticleEmitter") or v:IsA("Beam") or v:IsA("Trail") then
+				v.Enabled = false
 			end
 		end
+	end
 
-		if spinbotEnabled and LocalPlayer.Character and LocalPlaye
+	if spinbotEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+		local hrp = LocalPlayer.Character.HumanoidRootPart
+		hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(spinSpeed), 0)
+	end
+end)
+
+Players.PlayerRemoving:Connect(removeEsp)
