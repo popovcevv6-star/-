@@ -506,27 +506,40 @@ local function performRoleFling(roleType)
 	if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then return end
 	
 	local myHrp = myChar.HumanoidRootPart
-	
-	-- Сохраняем позицию, где ты был прямо перед нажатием
 	local startPosition = myHrp.CFrame
 	isFlingingRole = true
 	
 	task.spawn(function()
 		local startTime = tick()
-		-- Флингуем ровно 3.5 секунды
-		while tick() - startTime < 3.5 and myHrp and targetChar and targetChar.Parent and myHrp.Parent do
+		
+		-- Фаза 1: Моментальная плотная сцепка (0.4с)
+		while tick() - startTime < 0.4 and myHrp and targetChar and targetChar.Parent and myHrp.Parent do
 			RunService.Heartbeat:Wait()
 			local targetHrp = targetChar:FindFirstChild("HumanoidRootPart")
 			if targetHrp then
 				myHrp.CFrame = targetHrp.CFrame
-				myHrp.Velocity = Vector3.new(30000, 30000, 30000)
+				myHrp.Velocity = Vector3.new(0, 0, 0)
+				myHrp.RotVelocity = Vector3.new(0, 0, 0)
+			else
+				break
+			end
+		end
+		
+		-- Фаза 2: Совместный бешеный флинг (остаток до 3.5с)
+		local flingStartTime = tick()
+		while tick() - flingStartTime < (3.5 - 0.4) and myHrp and targetChar and targetChar.Parent and myHrp.Parent do
+			RunService.Heartbeat:Wait()
+			local targetHrp = targetChar:FindFirstChild("HumanoidRootPart")
+			if targetHrp then
+				myHrp.CFrame = targetHrp.CFrame
+				myHrp.Velocity = Vector3.new(50000, 50000, 50000)
 				myHrp.RotVelocity = Vector3.new(50000, 50000, 50000)
 			else
 				break
 			end
 		end
 		
-		-- Возвращаем тебя обратно на то место, где ты стоял
+		-- Фаза 3: Возврат на исходное место
 		if myHrp and myHrp.Parent then
 			myHrp.CFrame = startPosition
 			myHrp.Velocity = Vector3.new(0, 0, 0)
@@ -692,4 +705,4 @@ RunService.RenderStepped:Connect(function()
 	end
 end)
 
-Players.PlayerRemoving:Connect(removeEsp)
+Play
