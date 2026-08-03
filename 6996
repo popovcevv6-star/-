@@ -1,122 +1,128 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
 if not LocalPlayer then return end
 
 pcall(function()
-	local existing = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("AestheticMenuV2")
+	local existing = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("ModernHubV3")
 	if existing then existing:Destroy() end
 end)
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "AestheticMenuV2"
+ScreenGui.Name = "ModernHubV3"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
-local function addCorner(obj, radius)
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, radius)
-	corner.Parent = obj
+local function round(obj, r)
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, r)
+	c.Parent = obj
 end
 
-local CircleBtn = Instance.new("TextButton")
-CircleBtn.Name = "ToggleCircle"
-CircleBtn.Parent = ScreenGui
-CircleBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
-CircleBtn.Position = UDim2.new(0.05, 0, 0.4, 0)
-CircleBtn.Size = UDim2.new(0, 50, 0, 50)
-CircleBtn.Text = "⚡"
-CircleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-CircleBtn.TextSize = 20
-CircleBtn.Font = Enum.Font.SourceSansBold
-CircleBtn.Active = true
-CircleBtn.Draggable = true
-addCorner(CircleBtn, 25)
+local function stroke(obj, color, thickness)
+	local s = Instance.new("UIStroke")
+	s.Color = color
+	s.Thickness = thickness or 1
+	s.Parent = obj
+	return s
+end
 
-local CircleStroke = Instance.new("UIStroke")
-CircleStroke.Parent = CircleBtn
-CircleStroke.Color = Color3.fromRGB(80, 80, 100)
-CircleStroke.Thickness = 2
+-- Плавающая круглая кнопка
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Name = "FloatingCircle"
+ToggleBtn.Parent = ScreenGui
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
+ToggleBtn.Position = UDim2.new(0.04, 0, 0.35, 0)
+ToggleBtn.Size = UDim2.new(0, 48, 0, 48)
+ToggleBtn.Text = "⚡"
+ToggleBtn.TextColor3 = Color3.fromRGB(0, 220, 255)
+ToggleBtn.TextSize = 22
+ToggleBtn.Font = Enum.Font.GothamBold
+ToggleBtn.Active = true
+ToggleBtn.Draggable = true
+round(ToggleBtn, 24)
+stroke(ToggleBtn, Color3.fromRGB(0, 220, 255), 1.5)
 
+-- Главное окно
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-MainFrame.Size = UDim2.new(0, 420, 0, 240)
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+MainFrame.Size = UDim2.new(0, 460, 0, 280)
+MainFrame.BackgroundColor3 = Color3.fromRGB(14, 14, 18)
 MainFrame.ClipsDescendants = true
 MainFrame.Visible = false
-addCorner(MainFrame, 12)
+round(MainFrame, 14)
+stroke(MainFrame, Color3.fromRGB(35, 35, 48), 1.5)
 
-local MainStroke = Instance.new("UIStroke")
-MainStroke.Parent = MainFrame
-MainStroke.Color = Color3.fromRGB(60, 60, 75)
-MainStroke.Thickness = 2
-
-CircleBtn.MouseButton1Click:Connect(function()
+ToggleBtn.MouseButton1Click:Connect(function()
 	MainFrame.Visible = not MainFrame.Visible
 end)
 
-local SidePanel = Instance.new("Frame")
-SidePanel.Parent = MainFrame
-SidePanel.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
-SidePanel.Size = UDim2.new(0, 130, 1, 0)
-SidePanel.BorderSizePixel = 0
+-- Левая панель вкладок
+local Sidebar = Instance.new("Frame")
+Sidebar.Parent = MainFrame
+Sidebar.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
+Sidebar.Size = UDim2.new(0, 130, 1, 0)
+Sidebar.BorderSizePixel = 0
 
-local SideLayout = Instance.new("UIListLayout")
-SideLayout.Parent = SidePanel
-SideLayout.SortOrder = Enum.SortOrder.LayoutOrder
-SideLayout.Padding = UDim.new(0, 6)
+local SidebarLayout = Instance.new("UIListLayout")
+SidebarLayout.Parent = Sidebar
+SidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+SidebarLayout.Padding = UDim.new(0, 8)
 
-local SidePadding = Instance.new("UIPadding")
-SidePadding.Parent = SidePanel
-SidePadding.PaddingTop = UDim.new(0, 15)
-SidePadding.PaddingLeft = UDim.new(0, 12)
-SidePadding.PaddingRight = UDim.new(0, 12)
+local SidebarPad = Instance.new("UIPadding")
+SidebarPad.Parent = Sidebar
+SidebarPad.PaddingTop = UDim.new(0, 15)
+SidebarPad.PaddingLeft = UDim.new(0, 12)
+SidebarPad.PaddingRight = UDim.new(0, 12)
 
-local Divider = Instance.new("Frame")
-Divider.Parent = MainFrame
-Divider.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
-Divider.Position = UDim2.new(0, 130, 0, 0)
-Divider.Size = UDim2.new(0, 1, 1, 0)
-Divider.BorderSizePixel = 0
+-- Вертикальная разделительная линия
+local Line = Instance.new("Frame")
+Line.Parent = MainFrame
+Line.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+Line.Position = UDim2.new(0, 130, 0, 0)
+Line.Size = UDim2.new(0, 1, 1, 0)
+Line.BorderSizePixel = 0
 
-local ContentArea = Instance.new("Frame")
-ContentArea.Parent = MainFrame
-ContentArea.BackgroundTransparency = 1
-ContentArea.Position = UDim2.new(0, 131, 0, 0)
-ContentArea.Size = UDim2.new(1, -131, 1, 0)
+-- Контейнер для контента
+local Content = Instance.new("Frame")
+Content.Parent = MainFrame
+Content.BackgroundTransparency = 1
+Content.Position = UDim2.new(0, 131, 0, 0)
+Content.Size = UDim2.new(1, -131, 1, 0)
 
 local tabs = {}
 local tabButtons = {}
 
-local function createTab(tabName)
+local function createTab(name)
 	local btn = Instance.new("TextButton")
-	btn.Parent = SidePanel
-	btn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-	btn.Size = UDim2.new(1, 0, 0, 34)
-	btn.Text = tabName:upper()
-	btn.TextColor3 = Color3.fromRGB(160, 160, 180)
-	btn.TextSize = 13
-	btn.Font = Enum.Font.SourceSansBold
-	addCorner(btn, 8)
+	btn.Parent = Sidebar
+	btn.BackgroundColor3 = Color3.fromRGB(24, 24, 32)
+	btn.Size = UDim2.new(1, 0, 0, 36)
+	btn.Text = name:upper()
+	btn.TextColor3 = Color3.fromRGB(130, 130, 150)
+	btn.TextSize = 12
+	btn.Font = Enum.Font.GothamBold
+	round(btn, 8)
 
 	local container = Instance.new("ScrollingFrame")
-	container.Parent = ContentArea
+	container.Parent = Content
 	container.BackgroundTransparency = 1
 	container.Size = UDim2.new(1, 0, 1, 0)
 	container.CanvasSize = UDim2.new(0, 0, 0, 0)
 	container.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	container.ScrollBarThickness = 3
-	container.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 100)
+	container.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 80)
 	container.Visible = false
 
-	local listLayout = Instance.new("UIListLayout")
-	listLayout.Parent = container
-	listLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	listLayout.Padding = UDim.new(0, 8)
+	local list = Instance.new("UIListLayout")
+	list.Parent = container
+	list.SortOrder = Enum.SortOrder.LayoutOrder
+	list.Padding = UDim.new(0, 10)
 
 	local pad = Instance.new("UIPadding")
 	pad.Parent = container
@@ -125,17 +131,17 @@ local function createTab(tabName)
 	pad.PaddingRight = UDim.new(0, 15)
 	pad.PaddingBottom = UDim.new(0, 15)
 
-	tabs[tabName] = container
-	tabButtons[tabName] = btn
+	tabs[name] = container
+	tabButtons[name] = btn
 
 	btn.MouseButton1Click:Connect(function()
 		for _, c in pairs(tabs) do c.Visible = false end
 		for _, b in pairs(tabButtons) do 
-			b.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-			b.TextColor3 = Color3.fromRGB(160, 160, 180)
+			b.BackgroundColor3 = Color3.fromRGB(24, 24, 32)
+			b.TextColor3 = Color3.fromRGB(130, 130, 150)
 		end
 		container.Visible = true
-		btn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+		btn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 		btn.TextColor3 = Color3.fromRGB(255, 255, 255)
 	end)
 
@@ -147,57 +153,58 @@ local visualTab = createTab("visual")
 local trollingTab = createTab("trolling")
 
 tabs["main"].Visible = true
-tabButtons["main"].BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+tabButtons["main"].BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 tabButtons["main"].TextColor3 = Color3.fromRGB(255, 255, 255)
 
-local function createToggle(tabContainer, text, callback)
-	local toggleBtn = Instance.new("TextButton")
-	toggleBtn.Parent = tabContainer
-	toggleBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-	toggleBtn.Size = UDim2.new(1, 0, 0, 40)
-	toggleBtn.Text = ""
-	addCorner(toggleBtn, 8)
+local function createToggle(tab, titleText, callback)
+	local toggle = Instance.new("TextButton")
+	toggle.Parent = tab
+	toggle.BackgroundColor3 = Color3.fromRGB(22, 22, 30)
+	toggle.Size = UDim2.new(1, 0, 0, 42)
+	toggle.Text = ""
+	round(toggle, 8)
+	local s = stroke(toggle, Color3.fromRGB(38, 38, 52), 1)
 
-	local stroke = Instance.new("UIStroke")
-	stroke.Parent = toggleBtn
-	stroke.Color = Color3.fromRGB(50, 50, 65)
-	stroke.Thickness = 1
+	local title = Instance.new("TextLabel")
+	title.Parent = toggle
+	title.BackgroundTransparency = 1
+	title.Position = UDim2.new(0, 12, 0, 0)
+	title.Size = UDim2.new(0.65, 0, 1, 0)
+	title.Text = titleText
+	title.TextColor3 = Color3.fromRGB(210, 210, 230)
+	title.TextSize = 13
+	title.Font = Enum.Font.GothamSemibold
+	title.TextXAlignment = Enum.TextXAlignment.Left
 
-	local titleLabel = Instance.new("TextLabel")
-	titleLabel.Parent = toggleBtn
-	titleLabel.BackgroundTransparency = 1
-	titleLabel.Position = UDim2.new(0, 12, 0, 0)
-	titleLabel.Size = UDim2.new(0.6, 0, 1, 0)
-	titleLabel.Text = text
-	titleLabel.TextColor3 = Color3.fromRGB(220, 220, 240)
-	titleLabel.TextSize = 14
-	titleLabel.Font = Enum.Font.SourceSansBold
-	titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+	local indicator = Instance.new("Frame")
+	indicator.Parent = toggle
+	indicator.AnchorPoint = Vector2.new(1, 0.5)
+	indicator.Position = UDim2.new(1, -12, 0.5, 0)
+	indicator.Size = UDim2.new(0, 36, 0, 20)
+	indicator.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+	round(indicator, 10)
 
-	local statusLabel = Instance.new("TextLabel")
-	statusLabel.Parent = toggleBtn
-	statusLabel.BackgroundTransparency = 1
-	statusLabel.Position = UDim2.new(0.6, 0, 0, 0)
-	statusLabel.Size = UDim2.new(0.4, -12, 1, 0)
-	statusLabel.Text = "OFF"
-	statusLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
-	statusLabel.TextSize = 14
-	statusLabel.Font = Enum.Font.SourceSansBold
-	statusLabel.TextXAlignment = Enum.TextXAlignment.Right
+	local circle = Instance.new("Frame")
+	circle.Parent = indicator
+	circle.AnchorPoint = Vector2.new(0, 0.5)
+	circle.Position = UDim2.new(0, 3, 0.5, 0)
+	circle.Size = UDim2.new(0, 14, 0, 14)
+	circle.BackgroundColor3 = Color3.fromRGB(150, 150, 170)
+	round(circle, 7)
 
 	local state = false
-	toggleBtn.MouseButton1Click:Connect(function()
+	toggle.MouseButton1Click:Connect(function()
 		state = not state
 		if state then
-			statusLabel.Text = "ON"
-			statusLabel.TextColor3 = Color3.fromRGB(90, 255, 90)
-			toggleBtn.BackgroundColor3 = Color3.fromRGB(40, 50, 45)
-			stroke.Color = Color3.fromRGB(60, 120, 80)
+			indicator.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+			circle.Position = UDim2.new(1, -17, 0.5, 0)
+			circle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+			s.Color = Color3.fromRGB(0, 150, 80)
 		else
-			statusLabel.Text = "OFF"
-			statusLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
-			toggleBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-			stroke.Color = Color3.fromRGB(50, 50, 65)
+			indicator.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+			circle.Position = UDim2.new(0, 3, 0.5, 0)
+			circle.BackgroundColor3 = Color3.fromRGB(150, 150, 170)
+			s.Color = Color3.fromRGB(38, 38, 52)
 		end
 		pcall(function() callback(state) end)
 	end)
@@ -209,8 +216,8 @@ createToggle(mainTab, "ESP (Через стены)", function(state)
 	espEnabled = state
 	if not state then
 		for _, p in ipairs(Players:GetPlayers()) do
-			if p.Character and p.Character:FindFirstChild("CleanEspHighlight") then
-				p.Character.CleanEspHighlight:Destroy()
+			if p.Character and p.Character:FindFirstChild("ModernEspHL") then
+				p.Character.ModernEspHL:Destroy()
 			end
 		end
 	end
@@ -220,12 +227,12 @@ RunService.RenderStepped:Connect(function()
 	if espEnabled then
 		for _, p in ipairs(Players:GetPlayers()) do
 			if p ~= LocalPlayer and p.Character then
-				local hl = p.Character:FindFirstChild("CleanEspHighlight")
+				local hl = p.Character:FindFirstChild("ModernEspHL")
 				if not hl then
 					hl = Instance.new("Highlight")
-					hl.Name = "CleanEspHighlight"
+					hl.Name = "ModernEspHL"
 					hl.Adornee = p.Character
-					hl.FillColor = Color3.fromRGB(255, 60, 60)
+					hl.FillColor = Color3.fromRGB(0, 170, 255)
 					hl.OutlineColor = Color3.fromRGB(255, 255, 255)
 					hl.FillTransparency = 0.4
 					hl.OutlineTransparency = 0
