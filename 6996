@@ -206,7 +206,6 @@ local function createToggle(tab, titleText, callback)
 	end)
 end
 
--- ==================== VISUAL TAB ====================
 local espEnabled = false
 local invisFullEnabled = false
 
@@ -228,7 +227,6 @@ end)
 
 createToggle(visualTab, "Invisible Full", function(state)
 	invisFullEnabled = state
-	
 	local char = LocalPlayer.Character
 	if not char then return end
 
@@ -248,42 +246,36 @@ createToggle(visualTab, "Invisible Full", function(state)
 	end
 end)
 
--- ==================== TROLLING TAB ====================
 local spinbotEnabled = false
 local flingEnabled = false
-local flingFastEnabled = false
 local spinSpeed = 150
 
 createToggle(trollingTab, "Spinbot", function(state)
 	spinbotEnabled = state
 end)
 
-local flingBav = nil
-
-local function stopFlingPhysics()
-	if flingBav then
-		flingBav:Destroy()
-		flingBav = nil
-	end
-end
-
 createToggle(trollingTab, "Fling", function(state)
 	flingEnabled = state
-	if not state and not flingFastEnabled then
-		stopFlingPhysics()
+	if state then
+		task.spawn(function()
+			while flingEnabled do
+				RunService.Heartbeat:Wait()
+				pcall(function()
+					local c = LocalPlayer.Character
+					local hrp = c and c:FindFirstChild("HumanoidRootPart")
+					if hrp then
+						local vel = hrp.Velocity
+						hrp.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
+						RunService.RenderStepped:Wait()
+						hrp.Velocity = vel
+					end
+				end)
+			end
+		end)
 	end
 end)
 
-createToggle(trollingTab, "Fling Fast", function(state)
-	flingFastEnabled = state
-	if not state and not flingEnabled then
-		stopFlingPhysics()
-	end
-end)
-
--- ==================== RENDER LOOP ====================
 RunService.RenderStepped:Connect(function()
-	-- ESP Logic
 	if espEnabled then
 		for _, p in ipairs(Players:GetPlayers()) do
 			if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
@@ -322,7 +314,6 @@ RunService.RenderStepped:Connect(function()
 		end
 	end
 
-	-- Invisible Full Logic
 	if invisFullEnabled and LocalPlayer.Character then
 		local char = LocalPlayer.Character
 		for _, v in ipairs(char:GetDescendants()) do
@@ -337,28 +328,9 @@ RunService.RenderStepped:Connect(function()
 		end
 	end
 
-	-- Spinbot Logic
 	if spinbotEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
 		local hrp = LocalPlayer.Character.HumanoidRootPart
 		hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(spinSpeed), 0)
-	end
-
-	-- Safe Fling Physics (Угловая скорость, тебя не уносит в небо)
-	if (flingEnabled or flingFastEnabled) and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-		local hrp = LocalPlayer.Character.HumanoidRootPart
-		
-		if not flingBav or flingBav.Parent ~= hrp then
-			stopFlingPhysics()
-			flingBav = Instance.new("BodyAngularVelocity")
-			flingBav.Name = "FlingVelocity"
-			flingBav.MaxTorque = Vector3.new(0, math.huge, 0)
-			flingBav.Parent = hrp
-		end
-
-		local speed = flingFastEnabled and 10000 or 2500
-		flingBav.AngularVelocity = Vector3.new(0, speed, 0)
-	else
-		stopFlingPhysics()
 	end
 end)
 
