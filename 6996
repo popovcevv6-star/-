@@ -238,6 +238,9 @@ createToggle(visualTab, "Invisible Full", function(state)
 				if v.Name ~= "HumanoidRootPart" then
 					v.Transparency = 0
 				end
+				if v:IsA("BasePart") then
+					v.LocalTransparencyModifier = 0
+				end
 			elseif v:IsA("ParticleEmitter") or v:IsA("Beam") or v:IsA("Trail") then
 				v.Enabled = true
 			end
@@ -245,6 +248,25 @@ createToggle(visualTab, "Invisible Full", function(state)
 	end
 end)
 
+-- ==================== TROLLING TAB ====================
+local spinbotEnabled = false
+local flingEnabled = false
+local flingFastEnabled = false
+local spinSpeed = 150
+
+createToggle(trollingTab, "Spinbot", function(state)
+	spinbotEnabled = state
+end)
+
+createToggle(trollingTab, "Fling", function(state)
+	flingEnabled = state
+end)
+
+createToggle(trollingTab, "Fling Fast", function(state)
+	flingFastEnabled = state
+end)
+
+-- ==================== RENDER LOOP ====================
 RunService.RenderStepped:Connect(function()
 	-- ESP Logic
 	if espEnabled then
@@ -285,32 +307,38 @@ RunService.RenderStepped:Connect(function()
 		end
 	end
 
-	-- Invisible Full Logic (Прячет все, включая нож/пест на поясе/спине в MM2)
+	-- Invisible Full Logic (Убирает тело + аксессуары + предметы на костях MM2)
 	if invisFullEnabled and LocalPlayer.Character then
 		local char = LocalPlayer.Character
 		for _, v in ipairs(char:GetDescendants()) do
-			if v:IsA("BasePart") or v:IsA("Decal") then
+			if v:IsA("BasePart") then
+				v.Transparency = 1
+				v.LocalTransparencyModifier = 1
+			elseif v:IsA("Decal") then
 				v.Transparency = 1
 			elseif v:IsA("ParticleEmitter") or v:IsA("Beam") or v:IsA("Trail") then
 				v.Enabled = false
 			end
 		end
 	end
-end)
 
-Players.PlayerRemoving:Connect(removeEsp)
-
--- ==================== TROLLING TAB ====================
-local spinbotEnabled = false
-local spinSpeed = 150
-
-createToggle(trollingTab, "Spinbot", function(state)
-	spinbotEnabled = state
-end)
-
-RunService.RenderStepped:Connect(function()
+	-- Spinbot Logic
 	if spinbotEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
 		local hrp = LocalPlayer.Character.HumanoidRootPart
 		hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(spinSpeed), 0)
 	end
+
+	-- Fling Logic
+	if (flingEnabled or flingFastEnabled) and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+		local hrp = LocalPlayer.Character.HumanoidRootPart
+		local mult = flingFastEnabled and 99999 or 3000
+		local vel = hrp.Velocity
+		hrp.Velocity = Vector3.new(math.random(-mult, mult), mult, math.random(-mult, mult))
+		RunService.Heartbeat:Wait()
+		if hrp then
+			hrp.Velocity = vel
+		end
+	end
 end)
+
+Players.PlayerRemoving:Connect(removeEsp)
