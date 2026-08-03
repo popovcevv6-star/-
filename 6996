@@ -147,6 +147,7 @@ end
 local mainTab = createTab("main")
 local visualTab = createTab("visual")
 local trollingTab = createTab("trolling")
+local mm2Tab = createTab("mm2")
 
 tabs["main"].Visible = true
 tabButtons["main"].BackgroundColor3 = Color3.fromRGB(0, 170, 255)
@@ -208,11 +209,14 @@ end
 
 local espEnabled = false
 local invisFullEnabled = false
+local mm2RolesEspEnabled = false
 
 local function removeEsp(player)
 	if player.Character then
 		local gui = player.Character:FindFirstChild("WorkingEspGui")
+		local mm2Gui = player.Character:FindFirstChild("MM2RolesEspGui")
 		if gui then gui:Destroy() end
+		if mm2Gui then mm2Gui:Destroy() end
 	end
 end
 
@@ -246,32 +250,78 @@ createToggle(visualTab, "Invisible Full", function(state)
 	end
 end)
 
-local spinbotEnabled = false
-local flingEnabled = false
-local spinSpeed = 150
+local wandTool = nil
+local wandTarget = nil
+local wandConnection = nil
 
-createToggle(trollingTab, "Spinbot", function(state)
-	spinbotEnabled = state
-end)
+local function removeWand()
+	if wandConnection then
+		wandConnection:Disconnect()
+		wandConnection = nil
+	end
+	wandTarget = nil
+	if wandTool then
+		wandTool:Destroy()
+		wandTool = nil
+	end
+end
 
-createToggle(trollingTab, "Fling", function(state)
-	flingEnabled = state
+createToggle(trollingTab, "Attach Wand", function(state)
 	if state then
-		task.spawn(function()
-			while flingEnabled do
-				RunService.Heartbeat:Wait()
-				pcall(function()
-					local c = LocalPlayer.Character
-					local hrp = c and c:FindFirstChild("HumanoidRootPart")
-					if hrp then
-						local vel = hrp.Velocity
-						hrp.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
-						RunService.RenderStepped:Wait()
-						hrp.Velocity = vel
+		removeWand()
+		
+		local tool = Instance.new("Tool")
+		tool.Name = "Magic Wand"
+		tool.RequiresHandle = true
+		
+		local handle = Instance.new("Part")
+		handle.Name = "Handle"
+		handle.Size = Vector3.new(0.3, 3, 0.3)
+		handle.Color = Color3.fromRGB(0, 200, 255)
+		handle.Material = Enum.Material.Neon
+		handle.Parent = tool
+		
+		tool.Activated:Connect(function()
+			local mouse = LocalPlayer:GetMouse()
+			local target = mouse.Target
+			
+			if target then
+				local model = target:FindFirstAncestorOfClass("Model")
+				if model then
+					local plr = Players:GetPlayerFromCharacter(model)
+					if plr and plr ~= LocalPlayer then
+						wandTarget = model
+						return
 					end
-				end)
+				end
+			end
+			wandTarget = nil
+		end)
+		
+		local backpack = LocalPlayer:FindFirstChildOfClass("Backpack")
+		if backpack then
+			tool.Parent = backpack
+		end
+		wandTool = tool
+		
+		wandConnection = RunService.RenderStepped:Connect(function()
+			if wandTarget and wandTarget:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+				local myHRP = LocalPlayer.Character.HumanoidRootPart
+				local targetHRP = wandTarget.HumanoidRootPart
+				myHRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 2)
 			end
 		end)
+	else
+		removeWand()
+	end
+end)
+
+createToggle(mm2Tab, "Roles Chams", function(state)
+	mm2RolesEspEnabled = state
+	if not state then
+		for _, p in ipairs(Players:GetPlayers()) do
+			removeEsp(p)
+		end
 	end
 end)
 
@@ -314,6 +364,88 @@ RunService.RenderStepped:Connect(function()
 		end
 	end
 
+	if mm2RolesEspEnabled then
+		for _, p in ipairs(Players:GetPlayers()) do
+			if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+				local hrp = p.Character.HumanoidRootPart
+				local char = p.Character
+				local gui = char:FindFirstChild("MM2RolesEspGui")
+				
+				local roleColor = Color3.fromRGB(150, 150, 150)
+				local roleName = "Innocent"
+				
+				pcall(function()
+					local backpack = p:FindFirstChildOfClass("Backpack")
+					local character = char
+					
+					for _, item in ipairs(character:GetChildren()) do
+						if item:IsA("Tool") then
+							if item.Name == "Knife" then
+								roleColor = Color3.fromRGB(255, 0, 0)
+								roleName = "Murderer"
+							elseif item.Name == "Gun" or item.Name == "Revolver" then
+								roleColor = Color3.fromRGB(0, 120, 255)
+								roleName = "Sheriff"
+							end
+						end
+					end
+					
+					if backpack then
+						for _, item in ipairs(backpack:GetChildren()) do
+							if item:IsA("Tool") then
+								if item.Name == "Knife" then
+									roleColor = Color3.fromRGB(255, 0, 0)
+									roleName = "Murderer"
+								elseif item.Name == "Gun" or item.Name == "Revolver" then
+									roleColor = Color3.fromRGB(0, 120, 255)
+									roleName = "Sheriff"
+								end
+							end
+						end
+					end
+				end)
+
+				if not gui then
+					gui = Instance.new("BillboardGui")
+					gui.Name = "MM2RolesEspGui"
+					gui.Adornee = hrp
+					gui.AlwaysOnTop = true
+					gui.Size = UDim2.new(0, 24, 0, 36)
+					gui.StudsOffset = Vector3.new(0, 0, 0)
+
+					local frame = Instance.new("Frame")
+					frame.Name = "Box"
+					frame.Parent = gui
+					frame.Size = UDim2.new(1, 0, 1, 0)
+					frame.BackgroundTransparency = 0.5
+					round(frame, 3)
+					stroke(frame, Color3.fromRGB(255, 255, 255), 1)
+
+					local label = Instance.new("TextLabel")
+					label.Name = "Label"
+					label.Parent = frame
+					label.Size = UDim2.new(1, 0, 0, 12)
+					label.Position = UDim2.new(0, 0, -0.35, 0)
+					label.BackgroundTransparency = 1
+					label.TextSize = 9
+					label.Font = Enum.Font.GothamBold
+					label.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+					gui.Parent = char
+				else
+					local frame = gui:FindFirstChild("Box")
+					local label = frame and frame:FindFirstChild("Label")
+					if frame then
+						frame.BackgroundColor3 = roleColor
+					end
+					if label then
+						label.Text = p.DisplayName .. " [" .. roleName .. "]"
+					end
+				end
+			end
+		end
+	end
+
 	if invisFullEnabled and LocalPlayer.Character then
 		local char = LocalPlayer.Character
 		for _, v in ipairs(char:GetDescendants()) do
@@ -326,11 +458,6 @@ RunService.RenderStepped:Connect(function()
 				v.Enabled = false
 			end
 		end
-	end
-
-	if spinbotEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-		local hrp = LocalPlayer.Character.HumanoidRootPart
-		hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(spinSpeed), 0)
 	end
 end)
 
