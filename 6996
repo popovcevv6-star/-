@@ -258,12 +258,27 @@ createToggle(trollingTab, "Spinbot", function(state)
 	spinbotEnabled = state
 end)
 
+local flingBav = nil
+
+local function stopFlingPhysics()
+	if flingBav then
+		flingBav:Destroy()
+		flingBav = nil
+	end
+end
+
 createToggle(trollingTab, "Fling", function(state)
 	flingEnabled = state
+	if not state and not flingFastEnabled then
+		stopFlingPhysics()
+	end
 end)
 
 createToggle(trollingTab, "Fling Fast", function(state)
 	flingFastEnabled = state
+	if not state and not flingEnabled then
+		stopFlingPhysics()
+	end
 end)
 
 -- ==================== RENDER LOOP ====================
@@ -307,7 +322,7 @@ RunService.RenderStepped:Connect(function()
 		end
 	end
 
-	-- Invisible Full Logic (Прячет тело и всё навесное оружие MM2)
+	-- Invisible Full Logic
 	if invisFullEnabled and LocalPlayer.Character then
 		local char = LocalPlayer.Character
 		for _, v in ipairs(char:GetDescendants()) do
@@ -328,16 +343,22 @@ RunService.RenderStepped:Connect(function()
 		hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(spinSpeed), 0)
 	end
 
-	-- Fling Logic
+	-- Safe Fling Physics (Угловая скорость, тебя не уносит в небо)
 	if (flingEnabled or flingFastEnabled) and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
 		local hrp = LocalPlayer.Character.HumanoidRootPart
-		local mult = flingFastEnabled and 99999 or 3000
-		local vel = hrp.Velocity
-		hrp.Velocity = Vector3.new(math.random(-mult, mult), mult, math.random(-mult, mult))
-		RunService.Heartbeat:Wait()
-		if hrp then
-			hrp.Velocity = vel
+		
+		if not flingBav or flingBav.Parent ~= hrp then
+			stopFlingPhysics()
+			flingBav = Instance.new("BodyAngularVelocity")
+			flingBav.Name = "FlingVelocity"
+			flingBav.MaxTorque = Vector3.new(0, math.huge, 0)
+			flingBav.Parent = hrp
 		end
+
+		local speed = flingFastEnabled and 10000 or 2500
+		flingBav.AngularVelocity = Vector3.new(0, speed, 0)
+	else
+		stopFlingPhysics()
 	end
 end)
 
