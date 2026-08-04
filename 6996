@@ -1,4 +1,4 @@
-local Players = game:GetService("Players")
+Local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
@@ -445,7 +445,7 @@ createToggle(trollingTab, "Attach Wand", function(state)
 			if wandTarget and wandTarget:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
 				local myHRP = LocalPlayer.Character.HumanoidRootPart
 				local targetHRP = wandTarget.HumanoidRootPart
-				myHRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 2)
+				myHRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 2) * CFrame.Angles(0, math.pi, 0)
 			end
 		end)
 	else
@@ -511,7 +511,6 @@ local function performRoleFling(roleType)
 	
 	task.spawn(function()
 		local startTime = tick()
-		-- Флингуем ровно 0.4 секунды
 		while tick() - startTime < 0.4 and myHrp and targetChar and targetChar.Parent and myHrp.Parent do
 			RunService.Heartbeat:Wait()
 			local targetHrp = targetChar:FindFirstChild("HumanoidRootPart")
@@ -524,7 +523,6 @@ local function performRoleFling(roleType)
 			end
 		end
 		
-		-- Возвращаем обратно на исходное место
 		if myHrp and myHrp.Parent then
 			myHrp.CFrame = startPosition
 			myHrp.Velocity = Vector3.new(0, 0, 0)
